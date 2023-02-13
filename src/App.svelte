@@ -72,12 +72,12 @@
   function filterPersonsByStatus() {
     displayAllPersons = !displayAllPersons;
   }
-  $: personToDisplay = displayAllPersons
+  $: personsToDisplay = displayAllPersons
     ? persons
-    : persons.filter((t) => !t.dead);
+    : persons.filter((person) => !person.dead);
 
   let searchedName = "";
-  function searchByName(e) {
+  function searchPersonsByName(e) {
     searchedName = e.target.value;
   }
 
@@ -92,7 +92,7 @@
   <input
     type="text"
     placeholder="Recherche par nom"
-    on:input={(e) => searchByName(e)}
+    on:input={(e) => searchPersonsByName(e)}
     bind:value={searchedName}
   />
   <div class="filterByAge">
@@ -108,8 +108,9 @@
     <p>Age: {searchedAge}</p>
   </div>
 </div>
+
 <section class="trombinoscope__container">
-  {#each personToDisplay as person, i}
+  {#each personsToDisplay as person, i}
     {#if person.surname.toLowerCase().includes(searchedName.toLowerCase())}
       <div class="trombinoscope__item" on:click={() => selectAPerson(i)}>
         <p>
