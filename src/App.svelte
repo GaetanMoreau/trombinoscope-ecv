@@ -47,33 +47,34 @@
     },
   ];
 
-  function getAge(personBirth) {
+  function getAgeOfPerson(personBirth, personDeath) {
     let todayDate = new Date();
     let dateOfBirth = new Date(personBirth);
-    let diff = todayDate - dateOfBirth;
-    var diffInYears = Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
-    return diffInYears;
-  }
-  function getAgeUntilDeath(personBirth, personDeath) {
-    let dateOfDeath = new Date(personDeath);
-    let dateOfBirth = new Date(personBirth);
-    let diff = dateOfDeath - dateOfBirth;
-    var diffInYears = Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
+    let dateDiff;
+    if (personDeath) {
+      let dateOfDeath = new Date(personDeath);
+      dateDiff = dateOfDeath - dateOfBirth;
+    } else {
+      dateDiff = todayDate - dateOfBirth;
+    }
+    let diffInYears = Math.floor(dateDiff / (1000 * 60 * 60 * 24 * 365.25));
     return diffInYears;
   }
 
   let selected;
   $: selectedPerson = persons[selected];
 
-  function toggle(i) {
+  function selectAPerson(i) {
     selected = selected === i ? undefined : i;
   }
 
-  let displayAll = true;
-  function deadOrAlive() {
-    displayAll = !displayAll;
+  let displayAllPersons = true;
+  function filterPersonsByStatus() {
+    displayAllPersons = !displayAllPersons;
   }
-  $: personToDisplay = displayAll ? persons : persons.filter((t) => !t.dead);
+  $: personToDisplay = displayAllPersons
+    ? persons
+    : persons.filter((t) => !t.dead);
 
   let searchedName = "";
   function searchByName(e) {
@@ -81,13 +82,12 @@
   }
 
   let searchedAge = "";
-  // person.dead ? getAgeUntilDeath(person.born, person.dead) : getAge(person.born) > searchedAge
 </script>
 
 <h1>Trombinoscope</h1>
 <div class="trombinoscope__filters">
-  <button on:click={deadOrAlive}>
-    {displayAll ? "Uniquement vivants" : "Afficher tous"}
+  <button on:click={filterPersonsByStatus}>
+    {displayAllPersons ? "Uniquement vivants" : "Afficher tous"}
   </button>
   <input
     type="text"
@@ -111,16 +111,14 @@
 <section class="trombinoscope__container">
   {#each personToDisplay as person, i}
     {#if person.surname.toLowerCase().includes(searchedName.toLowerCase())}
-      <div class="trombinoscope__item" on:click={() => toggle(i)}>
+      <div class="trombinoscope__item" on:click={() => selectAPerson(i)}>
         <p>
           {person.name}
           {person.surname}
         </p>
-        <p>
-          Age : {person.dead
-            ? getAgeUntilDeath(person.born, person.dead)
-            : getAge(person.born)} ans {person.dead ? "lors du décés" : ""}
-        </p>
+        Age : {getAgeOfPerson(person.born, person.dead)} ans {person.dead
+          ? "au moment du décès"
+          : ""}
         {#if selected !== undefined && selected === i}
           <div>
             <p>
