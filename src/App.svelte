@@ -52,6 +52,20 @@
   let selected;
   $: selectedPerson = persons[selected];
 
+  function getAgeOfPerson(personBirth, personDeath) {
+    let todayDate = new Date();
+    let dateOfBirth = new Date(personBirth);
+    let dateDiff;
+    if (personDeath) {
+      let dateOfDeath = new Date(personDeath);
+      dateDiff = dateOfDeath.getTime() - dateOfBirth.getTime();
+    } else {
+      dateDiff = todayDate.getTime() - dateOfBirth.getTime();
+    }
+    let diffInYears = Math.floor(dateDiff / (1000 * 60 * 60 * 24 * 365.25));
+    return diffInYears;
+  }
+
   let displayAllPersons = true;
   function filterPersonsByStatus() {
     displayAllPersons = !displayAllPersons;
@@ -59,6 +73,14 @@
   $: personsToDisplay = displayAllPersons
     ? persons
     : persons.filter((person) => !person.dead);
+
+  $: personToDisplaySearch = personsToDisplay.filter((person) =>
+    person.surname.toLowerCase().includes(searchedName.toLowerCase())
+  );
+
+  $: personToDisplayAge = personToDisplaySearch.filter(
+    (person) => getAgeOfPerson(person.born, person.dead) < searchedAge
+  );
 
   let searchedName = "";
   function searchPersonsByName(e) {
@@ -108,14 +130,13 @@
     </div>
   </div>
   <section class="trombinoscope__container">
-    {#each personsToDisplay as person, i}
+    {#each personToDisplayAge as person, i}
       <Card
         {...person}
         bind:selected
         {selectedPerson}
         {i}
-        {searchedName}
-        {searchedAge}
+        age={getAgeOfPerson(person.born, person.dead)}
       />
     {/each}
   </section>
