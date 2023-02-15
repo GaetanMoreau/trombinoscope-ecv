@@ -72,32 +72,6 @@
 
 <h1>Trombinoscope</h1>
 
-<div class="trombinoscope__filters">
-  <button on:click={filterPersonsByStatus}>
-    {displayAllPersons ? "Uniquement vivants" : "Afficher tous"}
-  </button>
-
-  <input
-    type="text"
-    placeholder="Recherche par nom"
-    on:input={(e) => searchPersonsByName(e)}
-    bind:value={searchedName}
-  />
-
-  <div class="filterByAge">
-    <label for="age">Recherche par age</label>
-    <input
-      type="range"
-      min="0"
-      max="100"
-      step="1"
-      name="age"
-      bind:value={searchedAge}
-    />
-    <p>Age: {searchedAge}</p>
-  </div>
-</div>
-
 {#if selectedPerson !== undefined}
   <div>
     <p>Prénom : {selectedPerson.name}</p>
@@ -108,6 +82,31 @@
   </div>
   <button on:click={backToList}>Retour</button>
 {:else}
+  <div class="trombinoscope__filters">
+    <button on:click={filterPersonsByStatus}>
+      {displayAllPersons ? "Uniquement vivants" : "Afficher tous"}
+    </button>
+
+    <input
+      type="text"
+      placeholder="Recherche par nom"
+      on:input={(e) => searchPersonsByName(e)}
+      bind:value={searchedName}
+    />
+
+    <div class="filterByAge">
+      <label for="age">Recherche par age</label>
+      <input
+        type="range"
+        min="0"
+        max="100"
+        step="1"
+        name="age"
+        bind:value={searchedAge}
+      />
+      <p>Age: {searchedAge}</p>
+    </div>
+  </div>
   <section class="trombinoscope__container">
     {#each personsToDisplay as person, i}
       <Card
