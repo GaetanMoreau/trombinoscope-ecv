@@ -1,4 +1,7 @@
 <script>
+  import Card from "./lib/Card.svelte";
+  import { fade } from "svelte/transition";
+
   const persons = [
     {
       name: "Romain",
@@ -47,25 +50,21 @@
     },
   ];
 
+  let selected;
+  $: selectedPerson = persons[selected];
+
   function getAgeOfPerson(personBirth, personDeath) {
     let todayDate = new Date();
     let dateOfBirth = new Date(personBirth);
     let dateDiff;
     if (personDeath) {
       let dateOfDeath = new Date(personDeath);
-      dateDiff = dateOfDeath - dateOfBirth;
+      dateDiff = dateOfDeath.getTime() - dateOfBirth.getTime();
     } else {
-      dateDiff = todayDate - dateOfBirth;
+      dateDiff = todayDate.getTime() - dateOfBirth.getTime();
     }
     let diffInYears = Math.floor(dateDiff / (1000 * 60 * 60 * 24 * 365.25));
     return diffInYears;
-  }
-
-  let selected;
-  $: selectedPerson = persons[selected];
-
-  function selectAPerson(i) {
-    selected = selected === i ? undefined : i;
   }
 
   let displayAllPersons = true;
@@ -76,75 +75,81 @@
     ? persons
     : persons.filter((person) => !person.dead);
 
+  $: personToDisplaySearch = personsToDisplay.filter(
+    (person) =>
+      person.surname.toLowerCase().includes(searchedName.toLowerCase()) ||
+      person.name.toLowerCase().includes(searchedName.toLowerCase())
+  );
+
+  $: personToDisplayAge = personToDisplaySearch.filter(
+    (person) => getAgeOfPerson(person.born, person.dead) < searchedAge
+  );
+
   let searchedName = "";
   function searchPersonsByName(e) {
     searchedName = e.target.value;
   }
-
-  let searchedAge = "";
+  function backToList() {
+    selectedPerson = undefined;
+  }
+  let searchedAge = 100;
 </script>
 
 <h1>Trombinoscope</h1>
-<div class="trombinoscope__filters">
-  <button on:click={filterPersonsByStatus}>
-    {displayAllPersons ? "Uniquement vivants" : "Afficher tous"}
-  </button>
-  <input
-    type="text"
-    placeholder="Recherche par nom"
-    on:input={(e) => searchPersonsByName(e)}
-    bind:value={searchedName}
-  />
-  <div class="filterByAge">
-    <label for="age">Recherche par age</label>
-    <input
-      type="range"
-      min="0"
-      max="100"
-      step="1"
-      name="age"
-      bind:value={searchedAge}
-    />
-    <p>Age: {searchedAge}</p>
-  </div>
-</div>
 
-<section class="trombinoscope__container">
-  {#each personsToDisplay as person, i}
-    {#if person.surname.toLowerCase().includes(searchedName.toLowerCase())}
-      <div class="trombinoscope__item" on:click={() => selectAPerson(i)}>
-        <p>
-          {person.name}
-          {person.surname}
-        </p>
-        Age : {getAgeOfPerson(person.born, person.dead)} ans {person.dead
-          ? "au moment du décès"
-          : ""}
-        {#if selected !== undefined && selected === i}
-          <div>
-            <p>
-              Naissance : {selectedPerson.born}
-            </p>
-            <p>
-              Description : {selectedPerson.description}
-            </p>
-          </div>
-        {/if}
-      </div>
-    {/if}
-  {/each}
-</section>
+{#if selectedPerson !== undefined}
+  <div in:fade|local={{ duration: 1000 }}>
+    <p>Prénom : {selectedPerson.name}</p>
+    <p>Nom : {selectedPerson.surname}</p>
+    <p>Naissance : {selectedPerson.born}</p>
+    {#if selectedPerson.dead}<p>Mort : {selectedPerson.dead}</p> {/if}
+    <p>Description : {selectedPerson.description}</p>
+    <button on:click={backToList}>Retour</button>
+  </div>
+{:else}
+  <div class="trombinoscope__filters" in:fade|local={{ duration: 1000 }}>
+    <button on:click={filterPersonsByStatus}>
+      {displayAllPersons ? "Uniquement vivants" : "Afficher tous"}
+    </button>
+
+    <input
+      type="text"
+      placeholder="Recherche par nom"
+      on:input={(e) => searchPersonsByName(e)}
+      bind:value={searchedName}
+    />
+
+    <div class="filterByAge">
+      <label for="age">Recherche par age</label>
+      <input
+        type="range"
+        min="0"
+        max="100"
+        step="1"
+        name="age"
+        bind:value={searchedAge}
+      />
+      <p>Age: {searchedAge}</p>
+    </div>
+  </div>
+  <section class="trombinoscope__container" in:fade|local={{ duration: 1000 }}>
+    {#each personToDisplayAge as person, i}
+      <Card
+        {...person}
+        bind:selected
+        {selectedPerson}
+        {i}
+        age={getAgeOfPerson(person.born, person.dead)}
+      />
+    {/each}
+  </section>
+{/if}
 
 <style>
   .trombinoscope__container {
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
-  }
-  .trombinoscope__item {
-    border: 1px solid black;
-    padding: 10px;
-    width: 28%;
   }
   .trombinoscope__filters {
     display: flex;
