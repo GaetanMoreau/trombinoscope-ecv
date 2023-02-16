@@ -1,5 +1,6 @@
 <script>
   import Card from "./lib/Card.svelte";
+  import { fade } from "svelte/transition";
 
   const persons = [
     {
@@ -74,8 +75,10 @@
     ? persons
     : persons.filter((person) => !person.dead);
 
-  $: personToDisplaySearch = personsToDisplay.filter((person) =>
-    person.surname.toLowerCase().includes(searchedName.toLowerCase())
+  $: personToDisplaySearch = personsToDisplay.filter(
+    (person) =>
+      person.surname.toLowerCase().includes(searchedName.toLowerCase()) ||
+      person.name.toLowerCase().includes(searchedName.toLowerCase())
   );
 
   $: personToDisplayAge = personToDisplaySearch.filter(
@@ -95,16 +98,16 @@
 <h1>Trombinoscope</h1>
 
 {#if selectedPerson !== undefined}
-  <div>
+  <div in:fade|local={{ duration: 1000 }}>
     <p>Prénom : {selectedPerson.name}</p>
     <p>Nom : {selectedPerson.surname}</p>
     <p>Naissance : {selectedPerson.born}</p>
     {#if selectedPerson.dead}<p>Mort : {selectedPerson.dead}</p> {/if}
     <p>Description : {selectedPerson.description}</p>
+    <button on:click={backToList}>Retour</button>
   </div>
-  <button on:click={backToList}>Retour</button>
 {:else}
-  <div class="trombinoscope__filters">
+  <div class="trombinoscope__filters" in:fade|local={{ duration: 1000 }}>
     <button on:click={filterPersonsByStatus}>
       {displayAllPersons ? "Uniquement vivants" : "Afficher tous"}
     </button>
@@ -129,7 +132,7 @@
       <p>Age: {searchedAge}</p>
     </div>
   </div>
-  <section class="trombinoscope__container">
+  <section class="trombinoscope__container" in:fade|local={{ duration: 1000 }}>
     {#each personToDisplayAge as person, i}
       <Card
         {...person}
